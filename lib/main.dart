@@ -3,7 +3,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 void main() {
   runApp(
-    const ProviderScope(child: App(),
+    const ProviderScope(
+      child: App(),
     ),
   );
 }
@@ -25,18 +26,68 @@ class App extends StatelessWidget {
   }
 }
 
+const names = [
+  'John',
+  'Paul',
+  'George',
+  'Ringo',
+  'Alice',
+  'Bob',
+  'Charlie',
+  'Dave',
+  'Eve',
+  'Fred',
+  'Grace',
+];
+
+final tickerProvider = StreamProvider(
+  (ref) => Stream.periodic(
+    const Duration(
+      seconds: 1,
+    ),
+    (i) => i + 1,
+  ),
+);
+
+final nameProvider =
+    StreamProvider((ref) => ref.watch(tickerProvider.stream).map(
+          (count) => names.getRange(
+            0,
+            count,
+          ),
+        ));
+
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
-
-        return Scaffold(
+    final names = ref.watch(nameProvider);
+    return Scaffold(
       appBar: AppBar(
-          title: const Text(
-            'Example4',
-          ),
+        title: const Text(
+          'StreamProvider',
+        ),
+      ),
+      body: names.when(
+        data: (names) {
+          return ListView.builder(
+            itemCount: names.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text(
+                  names.elementAt(index),
+                ),
+              );
+            },
+          );
+        },
+        error: (error, stackTrace) => const Text(
+          'LLegamos al final de la lista de nombres',
+        ),
+        loading: () => const Center(
+          child: CircularProgressIndicator(),
+        ),
       ),
     );
   }
